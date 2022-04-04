@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 
 function Cards() {
 
-    const [cardImage, setCardsImage] = useState('')
+    const [cardImage, setCardsImage] = useState([])
     const [loading, setLoading] = useState(false)
 
     const [currentPage, setCurrentPage] = useState(1)
@@ -51,7 +51,6 @@ function Cards() {
     const handlePrevBtn = () => {
         setCurrentPage(currentPage - 1)
 
-
         if ((currentPage - 1) % pageNumberLimit == 0) {
             setMaxPageNumberLimit(maxPageNumberLimit - pageNumberLimit)
             setMinPageNumberLimit(minPageNumberLimit - pageNumberLimit)
@@ -61,7 +60,6 @@ function Cards() {
     const handleNextArrow = () => {
         if (currentPage != pages[pages.length - 1]) {
             setCurrentPage(currentPage + 1)
-
 
             if (currentPage + 1 > maxPageNumberLimit) {
                 setMaxPageNumberLimit(maxPageNumberLimit + pageNumberLimit)
@@ -86,20 +84,28 @@ function Cards() {
             return null;
         }
     }
+    
 
     useEffect(() => {
         setLoading(true)
-
-        fetch(`https://gateway.marvel.com/v1/public/characters?limit=12&offset=${(currentPage - 1) * 12}
-        &apikey=7f376033cee4fc8bc0f8519cbc7af6cd&ts=1&hash=3742fc994ebaec75d3e36e308b391f76`)
-            .then(res => res.json())
-            .then((data) => {
-                setCardsImage(data.data.results)
-
-                setLoading(false)
-            })
-
-
+        
+        const localData = JSON.parse(sessionStorage.getItem(currentPage))
+        if(localData){
+            setCardsImage(localData)
+            setLoading(false)
+        }
+        else{
+            fetch(`https://gateway.marvel.com/v1/public/characters?limit=12&offset=${(currentPage - 1) * 12}
+            &apikey=7f376033cee4fc8bc0f8519cbc7af6cd&ts=1&hash=3742fc994ebaec75d3e36e308b391f76`)
+                .then(res => res.json())
+                .then((data) => {
+                     setCardsImage(data.data.results)
+                     sessionStorage.setItem(currentPage,JSON.stringify([...data.data.results]))
+                     
+                     console.log("else calıstı")
+                    setLoading(false)
+                })
+        }
     }, [currentPage])
 
     return (
@@ -117,7 +123,6 @@ function Cards() {
                         )
                     })
                 }
-
 
                 {
                     loading && <div className='loading'><span>Loading...</span></div>
